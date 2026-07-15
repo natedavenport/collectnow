@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Collect Now — Prototype</title>
+<style>
+  :root{
+    --navy:#0A2540;
+    --blue:#2F8FE0;
+    --blue-dark:#1D6FBB;
+    --blue-pale:#EAF4FF;
+    --gold:#F5A623;
+    --ink:#1A2233;
+    --gray:#6B7280;
+    --gray-light:#98A2B3;
+    --line:#E4E7EC;
+    --page-bg:#e8edf3;
+    --panel-bg:#F5F6F8;
+    --green:#17845A;
+    --green-pale:#E7F7EF;
+    --warn:#B45309;
+    --warn-pale:#FFF3E0;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--page-bg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:40px 16px 80px;
+    gap:36px;
+    color:var(--ink);
+  }
+
+  /* ---------- Phone frame ---------- */
+  .phone{
+    width:390px;
+    height:844px;
+    background:#111318;
+    border-radius:54px;
+    padding:14px;
+    box-shadow:0 30px 60px -20px rgba(15,23,42,.45), 0 0 0 2px rgba(15,23,42,.06);
+    position:relative;
+    flex-shrink:0;
+  }
+  .notch{
+    position:absolute;
+    top:14px; left:50%; transform:translateX(-50%);
+    width:150px; height:26px;
+    background:#111318;
+    border-bottom-left-radius:18px;
+    border-bottom-right-radius:18px;
+    z-index:5;
+  }
+  .screen{
+    width:100%; height:100%;
+    background:#fff;
+    border-radius:40px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+  .statusbar{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 26px 6px;
+    font-size:15px; font-weight:600; color:var(--ink);
+    flex-shrink:0; background:#fff;
+  }
+
+  /* ---------- Top nav ---------- */
+  .topnav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 10px; background:#fff; border-bottom:1px solid var(--line);
+    flex-shrink:0;
+  }
+  .nav-btn{
+    width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+    color:var(--blue); flex-shrink:0;
+  }
+  .nav-btn svg{ width:20px; height:20px; }
+  .topnav-title{ font-size:15px; font-weight:700; color:var(--ink); }
+
+  .screen-body{
+    flex:1; min-height:0;
+    overflow-y:auto; overflow-x:hidden;
+    display:flex; flex-direction:column;
+    background:#fff;
+  }
+  .screen-body::-webkit-scrollbar{width:0;}
+  .px16{ padding-left:16px; padding-right:16px; }
+
+  /* ---------- List-group sections (Customer / Line Items) ---------- */
+  .lg-section{ background:#fff; flex-shrink:0; }
+  .lg-header{
+    display:flex; align-items:center; gap:8px; padding:10px 16px;
+    background:var(--panel-bg); border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+  }
+  .lg-icon{ width:19px; height:19px; color:var(--blue); display:flex; flex-shrink:0; }
+  .lg-icon svg{ width:100%; height:100%; }
+  .lg-title{ font-size:14.5px; font-weight:700; color:var(--ink); flex:1; }
+  .lg-body{ padding:14px 16px 18px; }
+
+  .cust-row-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .cust-name{ font-size:16.5px; font-weight:700; color:var(--ink); }
+  .cust-actions{ display:flex; gap:8px; }
+  .icon-circle{
+    width:32px; height:32px; border-radius:50%; background:var(--blue-pale);
+    display:flex; align-items:center; justify-content:center; color:var(--blue); flex-shrink:0;
+  }
+  .icon-circle svg{ width:16px; height:16px; }
+  .cust-address-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .cust-address{ font-size:13.5px; color:var(--gray); line-height:1.4; font-weight:500; }
+  .badge{
+    display:inline-flex; align-items:center; font-size:10.5px; font-weight:800;
+    letter-spacing:.04em; text-transform:uppercase; padding:4px 8px; border-radius:6px;
+    background:var(--blue-pale); color:var(--blue-dark);
+  }
+  .meta-row-bottom{ display:flex; align-items:center; justify-content:space-between; }
+  .meta-row-bottom .time{ font-size:12.5px; color:var(--gray); font-weight:600; }
+
+  .li-label{
+    font-size:11px; font-weight:800; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--gray-light); margin-bottom:10px;
+  }
+  .li-row{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    padding-bottom:14px; margin-bottom:14px; border-bottom:1px solid var(--line);
+  }
+  .li-name{ font-size:14.5px; font-weight:700; color:var(--ink); }
+  .li-sub{ font-size:12px; color:var(--gray); margin-top:3px; }
+  .li-amount{ font-size:14.5px; font-weight:700; color:var(--ink); flex-shrink:0; padding-left:10px; }
+  .li-total-row{ display:flex; justify-content:space-between; align-items:center; }
+  .li-total-label{ font-size:15px; font-weight:800; color:var(--ink); }
+  .li-total-amount{ font-size:18px; font-weight:800; color:var(--ink); }
+
+  /* ---------- Buttons ---------- */
+  .btn-primary{
+    background:var(--blue); color:#fff; border:none; border-radius:10px;
+    padding:15px; font-size:14.5px; font-weight:800; text-transform:uppercase; letter-spacing:.03em;
+    cursor:pointer; width:100%; transition:opacity .1s ease;
+  }
+  .btn-primary:active{ opacity:.82; }
+  .btn-block{ display:block; }
+
+  .prompt-space-note{
+    margin-top:14px; text-align:center; font-size:12.5px; color:var(--gray-light); font-style:italic;
+  }
+
+  /* ---------- List rows (recap / silence / timeout / dismissed) ---------- */
+  .list-row{
+    display:flex; align-items:center; gap:12px; padding:14px 16px;
+    background:#fff; border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    flex-shrink:0;
+  }
+  .list-row-icon{
+    width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:900; flex-shrink:0;
+  }
+  .list-row-icon.success{ background:var(--green-pale); color:var(--green); }
+  .list-row-icon.neutral{ background:var(--panel-bg); color:var(--gray); }
+  .list-row-icon.warn{ background:var(--warn-pale); color:var(--warn); }
+  .list-row-text{ flex:1; min-width:0; }
+  .list-row-title{ font-size:14px; font-weight:700; color:var(--ink); }
+  .list-row-sub{ font-size:12.5px; color:var(--gray); margin-top:1px; }
+  .list-row-link{
+    color:var(--blue); font-size:13px; font-weight:700; background:none; border:none; cursor:pointer;
+    flex-shrink:0; padding:4px;
+  }
+  .silence-detail{
+    padding:12px 16px 16px; font-size:13px; color:var(--gray); line-height:1.5;
+    background:var(--panel-bg); border-bottom:1px solid var(--line); flex-shrink:0;
+  }
+  .start-over-wrap{ margin-top:auto; padding-top:18px; padding-bottom:18px; }
+
+  /* ---------- Collect Now prompt card ---------- */
+  .prompt-card{
+    border-radius:16px; border:1px solid var(--line); overflow:hidden; background:#fff;
+    box-shadow:0 1px 2px rgba(16,24,40,.04);
+  }
+  .prompt-card.tier-clear{ border-color:#F7D695; box-shadow:0 10px 26px -14px rgba(245,166,35,.4); }
+  .prompt-accent{ height:5px; }
+  .prompt-card.tier-clear .prompt-accent{ background:linear-gradient(90deg,var(--gold),#ffd583); }
+  .prompt-card.tier-soft .prompt-accent{ background:var(--line); }
+  .prompt-card.tier-manual .prompt-accent{ background:var(--line); }
+  .prompt-inner{ padding:18px; }
+
+  .tier-badge{
+    display:inline-flex; font-size:10.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+    padding:4px 9px; border-radius:6px; margin-bottom:10px; margin-right:6px;
+  }
+  .tier-badge.clear{ background:var(--gold); color:#fff; }
+  .tier-badge.soft{ background:var(--panel-bg); color:var(--gray); border:1px solid var(--line); }
+  .tier-badge.offline{ background:var(--warn-pale); color:var(--warn); }
+
+  .prompt-title{ font-size:19px; font-weight:800; color:var(--ink); margin:2px 0 6px; letter-spacing:-.01em; }
+  .prompt-card.tier-soft .prompt-title{ font-size:16.5px; }
+  .prompt-why{ font-size:13.5px; color:var(--gray); margin:0 0 16px; font-weight:500; }
+  .prompt-why.loading{ font-style:italic; color:var(--gray-light); }
+
+  .rail-grid{ display:grid; gap:8px; margin-bottom:16px; }
+  .rail-grid.cols-1{ grid-template-columns:1fr; }
+  .rail-grid.cols-2{ grid-template-columns:1fr 1fr; }
+  .rail-btn{
+    border:1.5px solid var(--blue); background:#fff; color:var(--blue); border-radius:9px;
+    padding:13px 8px; font-size:12.5px; font-weight:800; text-transform:uppercase; letter-spacing:.02em;
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .rail-btn svg{ width:18px; height:18px; }
+  .rail-btn.selected{ background:var(--blue); color:#fff; }
+
+  .ask-card{ border:1.5px solid var(--line); border-radius:12px; padding:12px 14px 14px; margin-bottom:16px; }
+  .ask-card-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px; }
+  .ask-card-label{
+    font-size:10.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--gray-light);
+    flex-shrink:0;
+  }
+  .ask-card-tools{ display:flex; justify-content:flex-end; align-items:center; gap:14px; margin-bottom:8px; }
+  .source-badge{
+    font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.04em;
+    padding:3px 7px; border-radius:5px; flex-shrink:0;
+  }
+  .source-badge.live{ background:var(--green-pale); color:var(--green); }
+  .source-badge.cached{ background:var(--panel-bg); color:var(--gray); border:1px solid var(--line); }
+  .source-badge.edited{ background:var(--blue-pale); color:var(--blue-dark); }
+  .tone-btn{
+    background:none; border:none; color:var(--blue); font-size:11.5px; font-weight:800;
+    text-transform:uppercase; letter-spacing:.02em; cursor:pointer; display:flex; align-items:center; gap:4px;
+  }
+  .tone-btn svg{ width:12px; height:12px; }
+  .tone-btn:disabled{ color:var(--gray-light); cursor:default; }
+  .ask-copy-btn{
+    background:none; border:none; color:var(--blue); font-size:12.5px; font-weight:800;
+    text-transform:uppercase; letter-spacing:.02em; cursor:pointer;
+  }
+  .ask-copy-btn.copied{ color:var(--green); }
+  .ask-copy-btn:disabled{ color:var(--gray-light); cursor:default; }
+  .ask-textarea{
+    width:100%; border:none; resize:none; background:transparent; font-size:14px; line-height:1.5;
+    color:var(--ink); font-family:inherit; padding:0; min-height:114px; outline:none;
+  }
+  .ask-skeleton{ display:flex; flex-direction:column; gap:9px; padding:6px 0 8px; min-height:114px; }
+  .skeleton-line{
+    height:12px; border-radius:6px;
+    background:linear-gradient(90deg, var(--panel-bg) 25%, #eef0f3 37%, var(--panel-bg) 63%);
+    background-size:400% 100%;
+    animation:shimmer 1.3s ease-in-out infinite;
+  }
+  @keyframes shimmer{ 0%{ background-position:100% 0; } 100%{ background-position:0 0; } }
+
+  .btn-collect{
+    width:100%; padding:15px; border:none; border-radius:10px; background:var(--blue); color:#fff;
+    font-size:14.5px; font-weight:800; text-transform:uppercase; letter-spacing:.02em; cursor:pointer;
+    margin-bottom:12px;
+  }
+  .btn-collect:active{ opacity:.82; }
+
+  .prompt-actions{ display:flex; justify-content:center; align-items:center; gap:10px; }
+  .btn-text{ background:none; border:none; color:var(--gray); font-size:13px; font-weight:700; cursor:pointer; padding:4px; }
+  .btn-text:hover{ color:var(--ink); }
+  .action-divider{ color:var(--line); font-size:12px; }
+
+  /* ---------- Confirmation screen ---------- */
+  .confirm-screen{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:20px 6px;
+  }
+  .confirm-check{
+    width:74px; height:74px; border-radius:50%; background:var(--green-pale); color:var(--green);
+    display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:900; margin-bottom:22px;
+  }
+  .confirm-title{ font-size:21px; font-weight:800; margin:0 8px 8px; letter-spacing:-.01em; }
+  .confirm-sub{ font-size:14.5px; color:var(--gray); margin:0 0 34px; line-height:1.5; max-width:280px; }
+
+  /* ---------- Bottom tab bar ---------- */
+  .tabbar{ display:flex; border-top:1px solid var(--line); background:#fff; flex-shrink:0; }
+  .tab-item{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+    padding:8px 0 4px; color:var(--gray-light);
+  }
+  .tab-item svg{ width:22px; height:22px; }
+  .tab-item.active{ color:var(--navy); }
+  .tab-label{ font-size:10px; font-weight:600; }
+  .tab-item.active .tab-label{ font-weight:800; }
+  .home-indicator-row{ display:flex; justify-content:center; padding:7px 0; background:#fff; flex-shrink:0; }
+  .home-indicator{ width:134px; height:5px; border-radius:3px; background:#000; opacity:.85; }
+
+  /* ---------- Control bar (demo chrome — intentionally separate from phone) ---------- */
+  .controlbar{
+    width:100%; max-width:760px;
+    background:#161a22;
+    border-radius:24px;
+    padding:22px 26px 26px;
+    color:#e5e9f0;
+    box-shadow:0 20px 40px -20px rgba(0,0,0,.5);
+  }
+  .cb-title{
+    font-size:11.5px; font-weight:800; letter-spacing:.12em; color:#7c8698;
+    margin-bottom:14px;
+  }
+  .cb-section-label{
+    font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    color:#5c6578; margin:16px 0 8px;
+  }
+  .cb-scenarios{ display:flex; flex-wrap:wrap; gap:8px; }
+  .cb-btn{
+    background:#232936; border:1.5px solid #323a4a; color:#cfd6e4;
+    padding:10px 16px; border-radius:12px; font-size:13.5px; font-weight:700;
+    cursor:pointer; transition:all .12s ease;
+  }
+  .cb-btn:hover{ border-color:#4a5670; }
+  .cb-btn.active{
+    background:linear-gradient(135deg,var(--blue),var(--navy));
+    border-color:transparent; color:#fff;
+  }
+  .cb-toggles{ display:flex; flex-wrap:wrap; gap:22px; align-items:center; }
+  .cb-toggle{ display:flex; align-items:center; gap:10px; }
+  .switch{
+    width:42px; height:24px; border-radius:999px; background:#323a4a;
+    position:relative; cursor:pointer; flex-shrink:0; transition:background .15s ease;
+  }
+  .switch.on{ background:var(--green); }
+  .switch .knob{
+    position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%;
+    background:#fff; transition:left .15s ease;
+  }
+  .switch.on .knob{ left:21px; }
+  .cb-toggle-label{ font-size:13.5px; font-weight:600; color:#cfd6e4; }
+  .cb-toggle-label b{ color:#fff; }
+  .cb-reset{
+    background:none; border:1.5px solid #323a4a; color:#9aa4b8;
+    padding:9px 14px; border-radius:12px; font-size:13px; font-weight:700; cursor:pointer;
+  }
+  .cb-reset:hover{ border-color:#4a5670; color:#fff; }
+
+  .cb-llm-row{ display:flex; flex-direction:column; gap:8px; }
+  .cb-input{
+    background:#0d1017; border:1.5px solid #323a4a; color:#e5e9f0;
+    padding:10px 12px; border-radius:10px; font-size:13px; font-family:inherit; width:100%;
+  }
+  .cb-input::placeholder{ color:#5c6578; }
+  .cb-input:focus{ outline:none; border-color:var(--blue); }
+  .cb-llm-status{ font-size:12px; color:#9aa4b8; }
+  .cb-llm-status b{ color:#fff; }
+
+  .cb-trace{
+    margin-top:18px; padding:14px 16px; background:#0d1017; border-radius:14px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:12px; line-height:1.75; color:#9fe6b8;
+    border:1px solid #232936;
+  }
+  .cb-trace .trace-title{ color:#7c8698; font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:.06em; font-size:10.5px; }
+  .cb-trace .trace-line{ color:#c9d4e5; }
+  .cb-trace .trace-line b{ color:#fff; }
+  .cb-trace .trace-total{ color:#ffd479; font-weight:700; }
+  .cb-trace .trace-zip{ color:#7c8698; margin-top:6px; font-style:italic; }
+
+  @media (max-width:460px){
+    .phone{ width:100%; max-width:390px; height:80vh; min-height:700px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen" id="screen"></div>
+</div>
+
+<div class="controlbar">
+  <div class="cb-title">DEMO CONTROLS</div>
+  <div class="cb-scenarios" id="cbScenarios"></div>
+
+  <div class="cb-section-label">Live conditions</div>
+  <div class="cb-toggles" id="cbToggles"></div>
+
+  <div class="cb-section-label">Live LLM (optional — leave blank to always use cached copy)</div>
+  <div class="cb-llm-row" id="cbLlm"></div>
+
+  <div class="cb-trace" id="cbTrace"></div>
+</div>
+
+<script>
+/* =========================================================================
+   COLLECT NOW — PROTOTYPE
+
+   A deterministic risk decision (never network-dependent) wrapped in a
+   thin, optional live-LLM layer that only touches *copy* (the drafted ask,
+   the one-line "why", and tone regeneration). No real payments.
+
+   FILE MAP (for live editing during a demo):
+     1. SCENARIOS        — job data, one object per demo scenario
+     2. WEIGHTS / THRESHOLDS — every tunable number the decision engine uses
+     3. COPY              — every cached / fallback user-facing string
+     4. LLM_CONFIG / TONES — optional live-generation config
+     5. Decision logic    — deterministic, job-intrinsic signals only
+     6. generate()        — the one live-LLM call, with graceful fallback
+     7. Icons
+     8. App state
+     9. Render
+    10. Control bar
+    11. Event handlers
+    12. Init
+   ========================================================================= */
+
+/* ---------------------------------------------------------------------
+   1. SCENARIOS — five demo jobs lifted from the eval set. Edit these
+   live to answer "what if the ticket were bigger / they had a card on
+   file / etc." Each field maps directly to a signal read by the
+   decision engine in section 5 below.
+   --------------------------------------------------------------------- */
+const SCENARIOS = [
+  {
+    id:'hero', label:'Hero — Clear',
+    customerName:'Marcus Whitfield', customerFirstName:'Marcus',
+    customerType:'new', yearsAsCustomer:0, onTimeRate:null,
+    jobType:'Emergency HVAC Repair', ticketNumber:'#48213',
+    ticket:2400, ticketRatio:3.0,          // ticket vs. this customer's/trade's usual
+    isEmergency:true, afterHours:true,
+    depositTaken:false, suppressed:false, cardOnFile:false, canPayInFull:true, multiDay:false,
+    dataStatus:'known',                     // 'unknown' = cold start override
+    time:'9:52 PM', zip:'94103'
+  },
+  {
+    id:'silence', label:'Silence — Trusted',
+    customerName:'Dolores Kim', customerFirstName:'Dolores',
+    customerType:'repeat', yearsAsCustomer:6, onTimeRate:0.98,
+    jobType:'AC Tune-Up', ticketNumber:'#41870',
+    ticket:180, ticketRatio:1.0,
+    isEmergency:false, afterHours:false,
+    depositTaken:false, suppressed:false, cardOnFile:true, canPayInFull:true, multiDay:false,
+    dataStatus:'known',
+    time:'11:15 AM', zip:'60614'
+  },
+  {
+    id:'thesisA', label:'Thesis A — Small, Risky',
+    customerName:'Tyler Nguyen', customerFirstName:'Tyler',
+    customerType:'new', yearsAsCustomer:0, onTimeRate:null,
+    jobType:'Clogged Drain Line', ticketNumber:'#48901',
+    ticket:120, ticketRatio:1.1,
+    isEmergency:true, afterHours:true,
+    depositTaken:false, suppressed:false, cardOnFile:false, canPayInFull:true, multiDay:false,
+    dataStatus:'known',
+    time:'10:40 PM', zip:'30310'
+  },
+  {
+    id:'thesisB', label:'Thesis B — Large, Safe',
+    customerName:'Robert Alvarez', customerFirstName:'Robert',
+    customerType:'repeat', yearsAsCustomer:9, onTimeRate:0.99,
+    jobType:'Full System Replacement', ticketNumber:'#39012',
+    ticket:5000, ticketRatio:3.3,
+    isEmergency:false, afterHours:false,
+    depositTaken:false, suppressed:false, cardOnFile:true, canPayInFull:true, multiDay:true,
+    dataStatus:'known',
+    time:'2:30 PM', zip:'85018'
+  },
+  {
+    id:'financing', label:'Financing — Big Ticket',
+    customerName:'Priya Shah', customerFirstName:'Priya',
+    customerType:'new', yearsAsCustomer:0, onTimeRate:null,
+    jobType:'Full HVAC + Ductwork Install', ticketNumber:'#48955',
+    ticket:18000, ticketRatio:6.0,
+    isEmergency:false, afterHours:false,
+    depositTaken:false, suppressed:false, cardOnFile:false, canPayInFull:false, multiDay:true,
+    dataStatus:'known',
+    time:'1:05 PM', zip:'20147'
+  }
+];
+
+/* ---------------------------------------------------------------------
+   2. WEIGHTS / THRESHOLDS — every tunable number in the decision engine.
+   Geography/demographics are never inputs here, on purpose — only
+   job-intrinsic signals. Tune these live if a panel asks "what if X
+   mattered more?"
+   --------------------------------------------------------------------- */
+const WEIGHTS = {
+  NEW_CUSTOMER:     2,    // first job on file
+  RATIO_HIGH:       3,    // ticket >= 3x usual (or trade-typical for new customers)
+  RATIO_MED:        2,    // ticket >= 1.5x usual
+  EMERGENCY:        1.5,  // after-hours / emergency call
+  TRUSTED_HISTORY: -4,    // 3+ yrs, 90%+ on-time repeat customer
+  NO_CARD:          1     // no card on file yet
+};
+
+const THRESHOLDS = {
+  TIER_CLEAR: 5,                    // score >= this -> clear (solid, prominent)
+  TIER_SOFT: 2,                     // score >= this -> soft (subtle, optional); below -> silent
+  FINANCING_TICKET_MIN: 8000,       // very large + can't pay in full -> financing rail
+  DEPOSIT_TICKET_MIN: 3000,         // large / multi-day -> deposit alongside collect-now
+  EMERGENCY_FINANCING_ADDON_MIN: 1500, // sizable emergency ticket -> also offer financing
+  OFFLINE_TICKET_MIN: 1000          // offline on-device rule: new customer + ticket >= this -> prompt
+};
+
+/* ---------------------------------------------------------------------
+   3. COPY — every cached / fallback user-facing string in one place.
+   This is what renders when there's no live LLM configured, the call
+   times out, errors, or Offline/Timeout mode is on. Nothing here is a
+   numeric score, and nothing is ever judgmental about the customer —
+   only the job.
+   --------------------------------------------------------------------- */
+const COPY = {
+  // Prompt card chrome
+  promptTitleClear: 'Good one to collect today.',
+  promptTitleSoft: 'Might be worth asking today.',
+  tagSuggested: 'Suggested',
+  tagOptional: 'Optional',
+  tagOffline: 'Offline mode',
+  askLabel: 'Ready-to-use ask',
+  copyLabel: 'Copy',
+  copiedLabel: 'Copied ✓',
+  toneLabel: 'Try another tone',
+  dismissLabel: 'Dismiss',
+  suppressLabel: "This customer's fine",
+
+  // Why-line fallback fragments (job-framed, never about the person's character)
+  whyFragments: {
+    newCustomer: 'New customer',
+    largerTicket: 'larger-than-usual ticket',
+    afterHours: 'after-hours call',
+    noCard: 'no card on file yet',
+    offline: 'New customer · larger ticket (offline rule)',
+    fallbackDefault: 'Good moment to ask before you leave.'
+  },
+
+  // Drafted-ask fallback templates, one per rail. Each is tone-aware so the
+  // "Try another tone" button still visibly does something even with no
+  // live LLM configured — it just cycles cached phrasings instead of
+  // asking the model for new ones.
+  askFallback: {
+    collectNow: (job, tone) => ({
+      'friendly and casual': `All done! I can take card right here so you're all set — whenever you're ready.`,
+      'warm and appreciative': `Really appreciate you having us out today — I can run your card right now if that works.`,
+      'brief and to the point': `All set — want to pay by card now?`,
+      'a little more formal': `We've completed the work. I can process payment by card now if that's convenient.`
+    }[tone] || `All done! I can take card right here so you're all set — whenever you're ready.`),
+    deposit: (job, tone) => ({
+      'friendly and casual': `All done here! I can grab a deposit now to lock in the schedule, and we'll settle the rest once everything's wrapped up.`,
+      'warm and appreciative': `Thanks so much for choosing us — a deposit today locks in your spot, and we'll square up the rest at completion.`,
+      'brief and to the point': `Want to leave a deposit now to lock in the schedule?`,
+      'a little more formal': `I can take a deposit today to secure the schedule, with the remaining balance due at completion.`
+    }[tone] || `All done here! I can grab a deposit now to lock in the schedule, and we'll settle the rest once everything's wrapped up.`),
+    financing: (job, tone) => ({
+      'friendly and casual': `You're all set on the ${job.jobType.toLowerCase()}! Since this one's a bigger investment, want me to text you a link to spread the cost over a few months?`,
+      'warm and appreciative': `Thanks for trusting us with the ${job.jobType.toLowerCase()} — since it's a bigger investment, I can text over a financing link to spread out the cost.`,
+      'brief and to the point': `Want a financing link to spread out the cost?`,
+      'a little more formal': `Given the size of this investment, I can send a financing link that lets you spread the cost over several months.`
+    }[tone] || `You're all set on the ${job.jobType.toLowerCase()}! Since this one's a bigger investment, want me to text you a link to spread the cost over a few months?`)
+  },
+
+  // Silence state
+  silenceTitle: 'Collect Now: nothing to flag',
+  silenceWhyLink: 'Why?',
+  silenceReasonOverrideDefault: 'Deposit already taken, or the Pro marked this customer "fine" — silent regardless of score.',
+  silenceReasonColdStart: 'No history on file yet (cold start) — silent until we know more.',
+  silenceReasonOffline: 'Offline rule found no new-customer + large-ticket match, so it stayed quiet.',
+  silenceReasonTrusted: (job) => `${job.yearsAsCustomer}-year customer with a strong on-time history — this ticket didn't need a nudge.`,
+  silenceReasonDefault: 'Nothing about this job stood out enough to interrupt the close-out.',
+
+  // Timeout / dismissed / suppressed rows
+  timeoutTitle: 'Collect Now timed out',
+  timeoutSub: 'Continuing without a prompt.',
+  dismissedTitle: 'Dismissed',
+  dismissedSub: 'You can still collect later from the invoice.',
+  suppressedTitle: "Got it — we won't flag this customer again",
+
+  // Manual collect — always available below, whether or not Collect Now
+  // flags anything. Silence/timeout/dismiss are about the *nudge*, never
+  // about whether the Pro can actually take payment.
+  manualCollectTitle: 'Collect Payment',
+  manualCollectSub: "Not flagged by Collect Now — you're always free to collect anyway.",
+
+  // Close-out screen / buttons
+  markComplete: 'Mark Complete',
+  collectNowPlaceholder: 'Collect Now will appear here after close-out',
+  nextJob: 'Next Job',
+  jobCompleteTitle: 'Job marked complete',
+
+  // Rail chip labels
+  railLabels: { collectNow: 'Tap to Pay', deposit: 'Request Deposit', financing: 'Offer Financing' },
+
+  // Confirm-button labels (explicit tap required before any money "moves")
+  confirmCollectNow: (amt) => `Confirm & Collect $${amt}`,
+  confirmDeposit: (amt) => `Confirm & Collect $${amt} Deposit`,
+  confirmFinancing: 'Send Financing Offer',
+
+  // Confirmation screen
+  confirm: {
+    collectNow: (amt) => ({ title:`Paid — $${amt} collected on-site`, sub:'Card charged on this device. Receipt sent automatically.' }),
+    deposit: (dep, rem) => ({ title:`Deposit collected — $${dep} on-site`, sub:`Remaining $${rem} due at completion.` }),
+    financing: () => ({ title:'Financing application sent', sub:'Customer will get a decision in minutes. No money moves until they accept.' })
+  }
+};
+
+/* ---------------------------------------------------------------------
+   4. LLM_CONFIG / TONES — optional live-generation config. The API key
+   is entered by the Pro (or presenter) into the control bar at demo
+   time; it lives only in local JS memory for this session (state.llm.
+   apiKey) and is never persisted, logged, or sent anywhere except the
+   one endpoint below. Leave it blank to run the whole demo on cached
+   COPY only — nothing else in the app depends on network access.
+   --------------------------------------------------------------------- */
+const LLM_CONFIG = {
+  endpoint: 'https://api.anthropic.com/v1/messages',
+  model: 'claude-haiku-4-5-20251001',
+  maxTokens: 100,
+  timeoutMs: 6000   // matches the "Slow / Timeout" story — a real call gets this long
+};
+
+// Cycled through by the "Try another tone" button, one step per tap.
+const TONES = ['friendly and casual', 'warm and appreciative', 'brief and to the point', 'a little more formal'];
+
+/* ---------------------------------------------------------------------
+   5. DECISION LOGIC — transparent, weighted, job-intrinsic signals only.
+   This never calls the network and never varies with the LLM layer —
+   the risk decision is 100% deterministic and local.
+   --------------------------------------------------------------------- */
+function scoreBreakdown(job){
+  const parts = [];
+  if (job.customerType === 'new') parts.push({label:'New customer', value: WEIGHTS.NEW_CUSTOMER});
+  if (job.ticketRatio >= 3) parts.push({label:`Ticket ~${job.ticketRatio}x usual`, value: WEIGHTS.RATIO_HIGH});
+  else if (job.ticketRatio >= 1.5) parts.push({label:`Ticket ~${job.ticketRatio}x usual`, value: WEIGHTS.RATIO_MED});
+  if (job.isEmergency || job.afterHours) parts.push({label:'After-hours / emergency', value: WEIGHTS.EMERGENCY});
+  if (job.customerType === 'repeat' && job.yearsAsCustomer >= 3 && job.onTimeRate >= 0.9) {
+    parts.push({label:`${job.yearsAsCustomer}-yr on-time history`, value: WEIGHTS.TRUSTED_HISTORY});
+  }
+  if (!job.cardOnFile) parts.push({label:'No card on file', value: WEIGHTS.NO_CARD});
+  const total = parts.reduce((s,p)=>s+p.value, 0);
+  return {parts, total};
+}
+
+function tierFromScore(total){
+  if (total >= THRESHOLDS.TIER_CLEAR) return 'clear';
+  if (total >= THRESHOLDS.TIER_SOFT) return 'soft';
+  return 'silent';
+}
+
+function decideCollectNow(job, opts){
+  opts = opts || {};
+
+  // P0 override: deposit already taken, or Pro told us this customer's fine -> always silent
+  if (job.depositTaken || job.suppressed) {
+    return { tier:'silent', mode:'override', reasonKey:'depositOrSuppressed' };
+  }
+  // P0 override: cold start, no history at all -> always silent
+  if (job.dataStatus === 'unknown') {
+    return { tier:'silent', mode:'override', reasonKey:'coldStart' };
+  }
+  // Timeout: decision engine fails to respond -> never block close-out, just show nothing
+  if (opts.timeout) {
+    return { tier:'silent', mode:'timeout' };
+  }
+  // Offline: bypass the model entirely, use a simple on-device rule
+  if (opts.offline) {
+    const fires = job.customerType === 'new' && job.ticket >= THRESHOLDS.OFFLINE_TICKET_MIN;
+    return { tier: fires ? 'clear' : 'silent', mode:'offline' };
+  }
+  // Normal path: weighted model over job-intrinsic signals only
+  const {parts, total} = scoreBreakdown(job);
+  return { tier: tierFromScore(total), mode:'model', parts, total };
+}
+
+function computeRails(job){
+  const rails = [];
+  if (!job.canPayInFull && job.ticket >= THRESHOLDS.FINANCING_TICKET_MIN) {
+    rails.push('financing');
+  } else if (!job.canPayInFull || job.multiDay || job.ticket >= THRESHOLDS.DEPOSIT_TICKET_MIN) {
+    rails.push('deposit', 'collectNow');
+  } else {
+    rails.push('collectNow');
+  }
+  if ((job.isEmergency || job.afterHours) && job.ticket >= THRESHOLDS.EMERGENCY_FINANCING_ADDON_MIN && !rails.includes('financing')) {
+    rails.push('financing');
+  }
+  return rails;
+}
+
+function silenceReason(job, decision){
+  if (decision.mode === 'override') {
+    return decision.reasonKey === 'coldStart' ? COPY.silenceReasonColdStart : COPY.silenceReasonOverrideDefault;
+  }
+  if (decision.mode === 'offline') return COPY.silenceReasonOffline;
+  if (job.customerType === 'repeat' && job.yearsAsCustomer >= 3 && job.onTimeRate >= 0.9) {
+    return COPY.silenceReasonTrusted(job);
+  }
+  return COPY.silenceReasonDefault;
+}
+
+function fmt(n){ return Math.round(n).toLocaleString('en-US'); }
+
+function depositAmount(job){
+  return Math.round((job.ticket * 0.3) / 10) * 10;
+}
+
+/* ---------------------------------------------------------------------
+   6. GENERATE — the one live-LLM call used by both the drafted ask and
+   the why-line (plus tone regeneration, which just re-calls this with a
+   different tone). Always resolves — never throws — so callers never
+   need their own try/catch. Any of these short-circuits straight to
+   cached COPY:
+     - Offline mode ON        (no network available, by definition)
+     - Slow/Timeout mode ON   (simulates an unreliable backend)
+     - no API key configured  (safe zero-config default)
+     - the live call errors, times out, or returns unsafe/empty content
+   --------------------------------------------------------------------- */
+function activeSignalLabels(job){
+  // Plain-English mirror of scoreBreakdown() used only to brief the LLM.
+  // Numeric weights/scores are intentionally never sent to the model.
+  const bits = [];
+  if (job.customerType === 'new') bits.push('new customer, first job on file');
+  if (job.ticketRatio >= 1.5) bits.push("ticket larger than this customer/trade's usual");
+  if (job.isEmergency || job.afterHours) bits.push('after-hours / emergency call');
+  if (!job.cardOnFile) bits.push('no card on file yet');
+  if (job.customerType === 'repeat' && job.yearsAsCustomer >= 3 && job.onTimeRate >= 0.9) {
+    bits.push(`${job.yearsAsCustomer}-year customer with an on-time payment history`);
+  }
+  return bits.length ? bits : ['routine job, nothing unusual'];
+}
+
+function buildPrompt(kind, ctx){
+  if (kind === 'why') {
+    return `You write one-line internal notes for a home-service Pro's job app, explaining why today `
+      + `might be a good moment to ask about payment. Facts about this job (and only these facts): `
+      + `${activeSignalLabels(ctx.job).join('; ')}. `
+      + `Write ONE short line, under 12 words, plain and matter-of-fact, framed around the JOB not the `
+      + `person (e.g. "New customer, larger-than-usual ticket" — never anything judgmental about the `
+      + `customer, never a score or percentage). Return only that line, no quotes, no preamble.`;
+  }
+  const railIntent = {
+    collectNow: 'pay by card right there on the spot',
+    deposit: 'leave a deposit today to lock in the schedule, with the balance due at completion',
+    financing: 'consider a financing plan to spread the cost over a few months'
+  }[ctx.rail];
+  return `Write ONE short, friendly, spoken-style line (under 30 words) a home-service Pro could say out `
+    + `loud to a customer named ${ctx.job.customerFirstName} right after finishing "${ctx.job.jobType}", `
+    + `asking them to ${railIntent}. Tone: ${ctx.tone}. Return only that line — no quotes, no signature, `
+    + `no preamble.`;
+}
+
+function fallbackWhy(job, decision){
+  if (decision.mode === 'offline') return COPY.whyFragments.offline;
+  const f = COPY.whyFragments;
+  const bits = [];
+  if (job.customerType === 'new') bits.push(f.newCustomer);
+  if (job.ticketRatio >= 1.5) bits.push(f.largerTicket);
+  if (job.isEmergency || job.afterHours) bits.push(f.afterHours);
+  if (!job.cardOnFile) bits.push(f.noCard);
+  return bits.slice(0, 3).join(' · ') || f.fallbackDefault;
+}
+
+function fallbackAsk(job, rail, tone){
+  const t = COPY.askFallback[rail];
+  return typeof t === 'function' ? t(job, tone) : t;
+}
+
+function fallbackCopy(kind, ctx){
+  return kind === 'why' ? fallbackWhy(ctx.job, ctx.decision) : fallbackAsk(ctx.job, ctx.rail, ctx.tone);
+}
+
+// Light content guard: the prompt already instructs the model never to
+// mention a score, but we double-check before trusting live output.
+function isSafeGeneratedText(text){
+  if (!text) return false;
+  if (/\bscore\b/i.test(text)) return false;
+  if (/\d{1,3}\s?%/.test(text)) return false;
+  return true;
+}
+
+async function generate(kind, ctx){
+  if (state.offline || state.timeout || !state.llm.apiKey) {
+    return { text: fallbackCopy(kind, ctx), source:'cached' };
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LLM_CONFIG.timeoutMs);
+  try {
+    const res = await fetch(LLM_CONFIG.endpoint, {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': state.llm.apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body: JSON.stringify({
+        model: LLM_CONFIG.model,
+        max_tokens: LLM_CONFIG.maxTokens,
+        messages: [{ role:'user', content: buildPrompt(kind, ctx) }]
+      }),
+      signal: controller.signal
+    });
+    if (!res.ok) throw new Error('http ' + res.status);
+    const data = await res.json();
+    const text = ((data.content && data.content[0] && data.content[0].text) || '').trim().replace(/^"|"$/g, '');
+    if (!isSafeGeneratedText(text)) throw new Error('empty or unsafe output');
+    return { text, source:'live' };
+  } catch (err) {
+    return { text: fallbackCopy(kind, ctx), source:'cached' };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   7. ICONS — inline SVG, stroke=currentColor so they inherit text color
+   --------------------------------------------------------------------- */
+function iconCard(){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><line x1="2" y1="10" x2="22" y2="10"/></svg>`; }
+function iconCoin(){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 15.5c.5 1 1.4 1.5 2.5 1.5 1.7 0 3-1 3-2.3 0-3-5.5-1.7-5.5-4.7 0-1.3 1.3-2.3 3-2.3 1.1 0 2 .5 2.5 1.5M12 6.5v11"/></svg>`; }
+function iconDoc(){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/><path d="M9 15l6-6M9.5 12a.5.5 0 100-1 .5.5 0 000 1zM14.5 17a.5.5 0 100-1 .5.5 0 000 1z"/></svg>`; }
+function iconChevronLeft(){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>`; }
+function iconKebab(){ return `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>`; }
+function iconGauge(){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a8 8 0 1116 0"/><path d="M12 14l3.5-4.5"/></svg>`; }
+function iconCalendar(){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>`; }
+function iconChat(){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>`; }
+function iconPerson(){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`; }
+function iconDots(){ return `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>`; }
+function iconPhone(){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.7a2 2 0 01-.4 2.1L8.1 9.7a16 16 0 006 6l1.2-1.2a2 2 0 012.1-.4c.9.3 1.8.5 2.7.6a2 2 0 011.9 2.2z"/></svg>`; }
+function iconPin(){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6.5-9 12-9 12S3 16.5 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>`; }
+function iconList(){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`; }
+function iconRefresh(){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0115.5-6.3M21 12a9 9 0 01-15.5 6.3"/><path d="M3 4v5h5M21 20v-5h-5"/></svg>`; }
+
+const RAIL_META = {
+  collectNow: { label: COPY.railLabels.collectNow, icon: iconCard() },
+  deposit:    { label: COPY.railLabels.deposit, icon: iconCoin() },
+  financing:  { label: COPY.railLabels.financing, icon: iconDoc() }
+};
+
+/* ---------------------------------------------------------------------
+   8. APP STATE
+   --------------------------------------------------------------------- */
+const state = {
+  scenarioId: 'hero',
+  offline: false,
+  timeout: false,
+  affluentZip: true,
+  screen: 'closeout',       // closeout | decision | confirmation
+  promptAction: null,       // null | dismissed | suppressed
+  selectedRail: null,
+  askText: null,
+  askSource: null,          // 'live' | 'cached' | null (while loading)
+  askLoading: false,
+  askEdited: false,         // true once the Pro hand-edits the draft
+  whyText: null,
+  whyLoading: false,
+  toneIndex: 0,
+  copied: false,
+  lastConfirm: null,
+  genToken: 0,              // invalidates stale in-flight generate() calls
+  llm: { apiKey: '' }       // in-memory only — never persisted, never logged
+};
+
+function currentJob(){
+  return SCENARIOS.find(j => j.id === state.scenarioId);
+}
+
+function resetPromptState(){
+  state.genToken++;         // drop any in-flight generate() responses
+  state.promptAction = null;
+  state.selectedRail = null;
+  state.askText = null; state.askSource = null; state.askLoading = false; state.askEdited = false;
+  state.whyText = null; state.whyLoading = false;
+  state.toneIndex = 0;
+  state.copied = false;
+}
+
+/* ---------------------------------------------------------------------
+   9. RENDER
+   --------------------------------------------------------------------- */
+function render(){
+  renderScreen();
+  renderControlBar();
+}
+
+function renderScreen(){
+  const job = currentJob();
+  let body = '';
+  if (state.screen === 'closeout') body = closeoutHTML(job);
+  else if (state.screen === 'decision') body = decisionHTML(job);
+  else if (state.screen === 'confirmation') body = confirmationHTML(job);
+
+  document.getElementById('screen').innerHTML = `
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●●&nbsp;&nbsp;LTE&nbsp;&nbsp;🔋</span>
+    </div>
+    ${topNavHTML(job)}
+    <div class="screen-body">${body}</div>
+    ${tabBarHTML()}
+  `;
+}
+
+function topNavHTML(job){
+  return `
+    <div class="topnav">
+      <span class="nav-btn">${iconChevronLeft()}</span>
+      <span class="topnav-title">Job ${job.ticketNumber}</span>
+      <span class="nav-btn">${iconKebab()}</span>
+    </div>
+  `;
+}
+
+function tabBarHTML(){
+  return `
+    <div class="tabbar">
+      <div class="tab-item">${iconGauge()}<span class="tab-label">Dashboard</span></div>
+      <div class="tab-item active">${iconCalendar()}<span class="tab-label">Schedule</span></div>
+      <div class="tab-item">${iconChat()}<span class="tab-label">Messages</span></div>
+      <div class="tab-item">${iconPerson()}<span class="tab-label">Customers</span></div>
+      <div class="tab-item">${iconDots()}<span class="tab-label">More</span></div>
+    </div>
+    <div class="home-indicator-row"><div class="home-indicator"></div></div>
+  `;
+}
+
+function zipLabel(){
+  return state.affluentZip ? '94027 · higher-income ZIP' : '39209 · lower-income ZIP';
+}
+
+function closeoutHTML(job){
+  return `
+    <div class="lg-section">
+      <div class="lg-header"><span class="lg-icon">${iconPerson()}</span><span class="lg-title">Customer</span></div>
+      <div class="lg-body">
+        <div class="cust-row-top">
+          <span class="cust-name">${job.customerName}</span>
+          <div class="cust-actions">
+            <span class="icon-circle">${iconPhone()}</span>
+            <span class="icon-circle">${iconChat()}</span>
+          </div>
+        </div>
+        <div class="cust-address-row">
+          <span class="cust-address">ZIP ${zipLabel()}</span>
+          <span class="icon-circle">${iconPin()}</span>
+        </div>
+        <div class="meta-row-bottom">
+          <span class="badge">${job.customerType === 'new' ? 'New customer' : job.yearsAsCustomer + '-yr customer'}</span>
+          <span class="time">${job.time}</span>
+        </div>
+      </div>
+    </div>
+    <div class="lg-section">
+      <div class="lg-header"><span class="lg-icon">${iconList()}</span><span class="lg-title">Line Items</span></div>
+      <div class="lg-body">
+        <div class="li-label">Services</div>
+        <div class="li-row">
+          <div>
+            <div class="li-name">${job.jobType}</div>
+            <div class="li-sub">${job.ticketNumber} · qty 1 @ $${fmt(job.ticket)}/ea</div>
+          </div>
+          <div class="li-amount">$${fmt(job.ticket)}</div>
+        </div>
+        <div class="li-total-row">
+          <span class="li-total-label">Total</span>
+          <span class="li-total-amount">$${fmt(job.ticket)}</span>
+        </div>
+      </div>
+    </div>
+    <div class="px16" style="margin-top:20px;">
+      <button class="btn-primary btn-block" onclick="markComplete()">${COPY.markComplete}</button>
+      <div class="prompt-space-note">${COPY.collectNowPlaceholder}</div>
+    </div>
+  `;
+}
+
+// Shared by both the flagged Collect Now prompt and the always-available
+// manual collect section below — same rail chips, same ask card, same
+// confirm button, regardless of whether Collect Now suggested anything.
+function railButtonsHTML(rails){
+  return rails.map(r => {
+    const meta = RAIL_META[r];
+    const selected = state.selectedRail === r;
+    return `<button class="rail-btn ${selected ? 'selected' : ''}" onclick="chooseRail('${r}')">${meta.icon}${meta.label}</button>`;
+  }).join('');
+}
+
+function askCardHTML(){
+  let askInner;
+  if (state.askLoading) {
+    askInner = `
+      <div class="ask-skeleton">
+        <div class="skeleton-line" style="width:92%"></div>
+        <div class="skeleton-line" style="width:78%"></div>
+        <div class="skeleton-line" style="width:55%"></div>
+      </div>`;
+  } else {
+    askInner = `<textarea id="askText" class="ask-textarea" oninput="onAskInput(this)">${state.askText || ''}</textarea>`;
+  }
+  const badgeClass = state.askEdited ? 'edited' : (state.askSource || 'cached');
+  const badgeLabel = state.askEdited ? 'Edited' : (state.askSource === 'live' ? 'Live' : 'Cached');
+  const sourceBadge = state.askLoading ? '' : `<span id="askSourceBadge" class="source-badge ${badgeClass}">${badgeLabel}</span>`;
+  return `
+    <div class="ask-card">
+      <div class="ask-card-top">
+        <span class="ask-card-label">${COPY.askLabel}</span>
+        ${sourceBadge}
+      </div>
+      <div class="ask-card-tools">
+        <button class="tone-btn" onclick="regenerateTone()" ${state.askLoading ? 'disabled' : ''}>${iconRefresh()}${COPY.toneLabel}</button>
+        <button class="ask-copy-btn ${state.copied ? 'copied' : ''}" onclick="copyAsk()" ${state.askLoading ? 'disabled' : ''}>${state.copied ? COPY.copiedLabel : COPY.copyLabel}</button>
+      </div>
+      ${askInner}
+    </div>
+  `;
+}
+
+function collectButtonHTML(job){
+  if (!state.selectedRail || state.askLoading) return '';
+  let label;
+  if (state.selectedRail === 'collectNow') label = COPY.confirmCollectNow(fmt(job.ticket));
+  else if (state.selectedRail === 'deposit') label = COPY.confirmDeposit(fmt(depositAmount(job)));
+  else label = COPY.confirmFinancing;
+  return `<button class="btn-collect" onclick="confirmCollect()">${label}</button>`;
+}
+
+// Always-available manual collect card — rendered whenever Collect Now has
+// nothing active on screen (silent, timed out, dismissed, or suppressed).
+// Not flagging a job is a restraint decision about the *nudge*; it must
+// never be the only way the Pro can take payment.
+function manualCollectSectionHTML(job){
+  const rails = computeRails(job);
+  return `
+    <div class="px16" style="margin-top:16px;">
+      <div class="prompt-card tier-manual">
+        <div class="prompt-accent"></div>
+        <div class="prompt-inner">
+          <h3 class="prompt-title">${COPY.manualCollectTitle}</h3>
+          <p class="prompt-why">${COPY.manualCollectSub}</p>
+          <div class="rail-grid cols-${rails.length > 1 ? 2 : 1}">${railButtonsHTML(rails)}</div>
+          ${askCardHTML()}
+          ${collectButtonHTML(job)}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function decisionHTML(job){
+  const decision = decideCollectNow(job, {offline: state.offline, timeout: state.timeout});
+
+  const recap = `
+    <div class="list-row">
+      <div class="list-row-icon success">✓</div>
+      <div class="list-row-text">
+        <div class="list-row-title">${COPY.jobCompleteTitle}</div>
+        <div class="list-row-sub">${job.jobType} · ${job.customerName}</div>
+      </div>
+    </div>
+  `;
+
+  // Timeout: never block the close-out, just show nothing — but manual
+  // collect is still right there underneath.
+  if (decision.mode === 'timeout') {
+    return recap + `
+      <div class="list-row">
+        <div class="list-row-icon warn">!</div>
+        <div class="list-row-text">
+          <div class="list-row-title">${COPY.timeoutTitle}</div>
+          <div class="list-row-sub">${COPY.timeoutSub}</div>
+        </div>
+      </div>
+      ${manualCollectSectionHTML(job)}
+      ${startOverButton()}
+    `;
+  }
+
+  // Explicit dismiss / suppress from this session — the Pro turned down the
+  // *nudge*, not the ability to collect, so manual collect stays available.
+  if (state.promptAction === 'dismissed') {
+    return recap + `
+      <div class="list-row">
+        <div class="list-row-icon neutral">–</div>
+        <div class="list-row-text">
+          <div class="list-row-title">${COPY.dismissedTitle}</div>
+          <div class="list-row-sub">${COPY.dismissedSub}</div>
+        </div>
+      </div>
+      ${manualCollectSectionHTML(job)}
+      ${startOverButton()}
+    `;
+  }
+  if (state.promptAction === 'suppressed') {
+    return recap + `
+      <div class="list-row">
+        <div class="list-row-icon neutral">–</div>
+        <div class="list-row-text">
+          <div class="list-row-title">${COPY.suppressedTitle}</div>
+        </div>
+      </div>
+      ${manualCollectSectionHTML(job)}
+      ${startOverButton()}
+    `;
+  }
+
+  // Silent tier — fully deterministic, no LLM involved. Restraint about the
+  // nudge is never restraint about the Pro's ability to collect payment.
+  if (decision.tier === 'silent') {
+    return recap + `
+      <div class="list-row">
+        <div class="list-row-icon neutral">–</div>
+        <div class="list-row-text">
+          <div class="list-row-title">${COPY.silenceTitle}</div>
+        </div>
+        <button class="list-row-link" onclick="toggleSilenceDetail()">${COPY.silenceWhyLink}</button>
+      </div>
+      <div id="silenceDetail" class="silence-detail" style="display:none;">${silenceReason(job, decision)}</div>
+      ${manualCollectSectionHTML(job)}
+      ${startOverButton()}
+    `;
+  }
+
+  // Soft or clear: the actual prompt — why-line and ask are LLM-generated
+  // (with cached-COPY fallback) via the async pipeline in section 11.
+  const rails = computeRails(job);
+  const tierBadge = decision.tier === 'clear' ? COPY.tagSuggested : COPY.tagOptional;
+  const title = decision.tier === 'clear' ? COPY.promptTitleClear : COPY.promptTitleSoft;
+
+  const whyHTML = state.whyLoading
+    ? `<p class="prompt-why loading">Finding the right reason…</p>`
+    : `<p class="prompt-why">${state.whyText || ''}</p>`;
+
+  return recap + `
+    <div class="px16" style="margin-top:16px;">
+      <div class="prompt-card tier-${decision.tier}">
+        <div class="prompt-accent"></div>
+        <div class="prompt-inner">
+          <div>
+            ${decision.mode === 'offline' ? `<span class="tier-badge offline">${COPY.tagOffline}</span>` : ''}
+            <span class="tier-badge ${decision.tier}">${tierBadge}</span>
+          </div>
+          <h3 class="prompt-title">${title}</h3>
+          ${whyHTML}
+          <div class="rail-grid cols-${rails.length > 1 ? 2 : 1}">${railButtonsHTML(rails)}</div>
+          ${askCardHTML()}
+          ${collectButtonHTML(job)}
+          <div class="prompt-actions">
+            <button class="btn-text" onclick="dismissPrompt()">${COPY.dismissLabel}</button>
+            <span class="action-divider">•</span>
+            <button class="btn-text" onclick="suppressCustomer()">${COPY.suppressLabel}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function startOverButton(){
+  return `<div class="px16 start-over-wrap"><button class="btn-primary btn-block" onclick="resetToCloseout()">${COPY.nextJob}</button></div>`;
+}
+
+function confirmationHTML(job){
+  const c = state.lastConfirm;
+  return `
+    <div class="confirm-screen">
+      <div class="confirm-check">✓</div>
+      <h2 class="confirm-title">${c.title}</h2>
+      <p class="confirm-sub">${c.sub}</p>
+      <div class="px16" style="width:100%;">
+        <button class="btn-primary btn-block" onclick="resetToCloseout()">${COPY.nextJob}</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ---------------------------------------------------------------------
+   10. CONTROL BAR
+   --------------------------------------------------------------------- */
+function escapeAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+
+function renderControlBar(){
+  const scenariosEl = document.getElementById('cbScenarios');
+  scenariosEl.innerHTML = SCENARIOS.map(j => `
+    <button class="cb-btn ${state.scenarioId === j.id ? 'active' : ''}" onclick="selectScenario('${j.id}')">${j.label}</button>
+  `).join('') + `<button class="cb-reset" onclick="resetDemo()">Reset Demo</button>`;
+
+  const togglesEl = document.getElementById('cbToggles');
+  togglesEl.innerHTML = `
+    <div class="cb-toggle">
+      <div class="switch ${state.offline ? 'on' : ''}" onclick="toggleOffline()"><div class="knob"></div></div>
+      <div class="cb-toggle-label">Offline <b>${state.offline ? 'ON' : 'OFF'}</b></div>
+    </div>
+    <div class="cb-toggle">
+      <div class="switch ${state.timeout ? 'on' : ''}" onclick="toggleTimeout()"><div class="knob"></div></div>
+      <div class="cb-toggle-label">Slow / Timeout <b>${state.timeout ? 'ON' : 'OFF'}</b></div>
+    </div>
+    <div class="cb-toggle">
+      <div class="switch ${state.affluentZip ? 'on' : ''}" onclick="toggleZip()"><div class="knob"></div></div>
+      <div class="cb-toggle-label">Fairness: ZIP <b>${state.affluentZip ? 'Affluent' : 'Not affluent'}</b></div>
+    </div>
+  `;
+
+  const llmEl = document.getElementById('cbLlm');
+  llmEl.innerHTML = `
+    <input id="llmKeyInput" class="cb-input" type="password" autocomplete="off" spellcheck="false"
+      placeholder="Anthropic API key (optional) — sk-ant-…" value="${escapeAttr(state.llm.apiKey)}"
+      oninput="setLlmKey(this.value)">
+    <div class="cb-llm-status" id="llmStatus"></div>
+  `;
+
+  renderTrace();
+  updateLlmStatus();
+}
+
+function renderTrace(){
+  const job = currentJob();
+  const decision = decideCollectNow(job, {offline: state.offline, timeout: state.timeout});
+  let lines = '';
+
+  if (decision.mode === 'override') {
+    lines = `<div class="trace-line">Override → <b>${decision.tier.toUpperCase()}</b><br>${silenceReason(job, decision)}</div>`;
+  } else if (decision.mode === 'timeout') {
+    lines = `<div class="trace-line">Decision engine timed out (simulated) → no prompt shown; close-out continues normally.</div>`;
+  } else if (decision.mode === 'offline') {
+    const fires = decision.tier !== 'silent';
+    lines = `<div class="trace-line">Offline mode: scoring model bypassed.<br>Rule: new customer AND ticket ≥ $${fmt(THRESHOLDS.OFFLINE_TICKET_MIN)} → <b>${fires ? 'prompt fires' : 'no prompt'}</b> (labeled offline)</div>`;
+  } else {
+    const rows = decision.parts.map(p => `<div class="trace-line">${p.value >= 0 ? '+' : ''}${p.value}&nbsp;&nbsp;${p.label}</div>`).join('');
+    lines = rows + `<div class="trace-total">= ${decision.total} → ${decision.tier.toUpperCase()}</div>`;
+  }
+
+  document.getElementById('cbTrace').innerHTML = `
+    <div class="trace-title">Decision trace — ${job.label}</div>
+    ${lines}
+    <div class="trace-zip">ZIP shown: ${zipLabel()} — never read by any rule. Toggle it; this trace won't move.</div>
+  `;
+}
+
+function updateLlmStatus(){
+  const el = document.getElementById('llmStatus');
+  if (!el) return;
+  if (state.offline || state.timeout) {
+    el.innerHTML = `Forcing cached copy — <b>${state.offline ? 'Offline' : 'Timeout'} mode is on</b>`;
+  } else if (!state.llm.apiKey) {
+    el.innerHTML = `Cached copy only — <b>no API key set</b>`;
+  } else {
+    const src = state.askSource === 'live' ? 'Live LLM' : state.askSource === 'cached' ? 'Cached (fallback)' : 'Not called yet';
+    el.innerHTML = `Key set — last draft used: <b>${src}</b>`;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   11. EVENT HANDLERS
+   --------------------------------------------------------------------- */
+function selectScenario(id){
+  state.scenarioId = id;
+  state.screen = 'closeout';
+  resetPromptState();
+  state.lastConfirm = null;
+  render();
+}
+
+function markComplete(){
+  state.screen = 'decision';
+  resetPromptState();
+  render();
+
+  const job = currentJob();
+  const decision = decideCollectNow(job, {offline: state.offline, timeout: state.timeout});
+  if (decision.tier === 'soft' || decision.tier === 'clear') {
+    beginPromptGeneration(job, decision);
+  } else {
+    // Collect Now has nothing to say — draft the manual-collect ask anyway,
+    // since the Pro can (and should) still be able to collect payment.
+    beginManualCollectGeneration(job);
+  }
+}
+
+// Kicks off the live-LLM (or cached-fallback) draft for the why-line and
+// the default rail's ask, right after the close-out prompt first appears.
+async function beginPromptGeneration(job, decision){
+  const rails = computeRails(job);
+  const rail = rails[0];
+  const token = ++state.genToken;
+  state.whyLoading = true;
+  state.askLoading = true;
+  renderScreen();
+
+  const [whyRes, askRes] = await Promise.all([
+    generate('why', { job, decision }),
+    generate('ask', { job, rail, tone: TONES[state.toneIndex] })
+  ]);
+  if (token !== state.genToken) return; // superseded by a newer action
+
+  state.whyText = whyRes.text; state.whyLoading = false;
+  state.askText = askRes.text; state.askSource = askRes.source; state.askLoading = false;
+  renderScreen();
+  updateLlmStatus();
+}
+
+// Same idea, but for the always-available manual collect card — no "why"
+// needed since there's no flagged reason to explain.
+async function beginManualCollectGeneration(job){
+  const rails = computeRails(job);
+  const rail = rails[0];
+  const token = ++state.genToken;
+  state.askLoading = true;
+  renderScreen();
+
+  const res = await generate('ask', { job, rail, tone: TONES[state.toneIndex] });
+  if (token !== state.genToken) return;
+  state.askText = res.text; state.askSource = res.source; state.askLoading = false;
+  renderScreen();
+  updateLlmStatus();
+}
+
+function toggleSilenceDetail(){
+  const el = document.getElementById('silenceDetail');
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function chooseRail(rail){
+  const job = currentJob();
+  state.selectedRail = rail;
+  state.toneIndex = 0;
+  state.askEdited = false;
+  state.copied = false;
+  const token = ++state.genToken;
+  state.askLoading = true;
+  renderScreen();
+
+  const res = await generate('ask', { job, rail, tone: TONES[state.toneIndex] });
+  if (token !== state.genToken) return;
+  state.askText = res.text; state.askSource = res.source; state.askLoading = false;
+  renderScreen();
+  updateLlmStatus();
+}
+
+async function regenerateTone(){
+  const job = currentJob();
+  const rail = state.selectedRail || computeRails(job)[0];
+  state.toneIndex = (state.toneIndex + 1) % TONES.length;
+  state.askEdited = false;
+  state.copied = false;
+  const token = ++state.genToken;
+  state.askLoading = true;
+  renderScreen();
+
+  const res = await generate('ask', { job, rail, tone: TONES[state.toneIndex] });
+  if (token !== state.genToken) return;
+  state.askText = res.text; state.askSource = res.source; state.askLoading = false;
+  renderScreen();
+  updateLlmStatus();
+}
+
+// Manual edits update state without a full re-render, so the cursor and
+// scroll position in the textarea are left alone.
+function onAskInput(el){
+  state.askText = el.value;
+  state.askEdited = true;
+  const badge = document.getElementById('askSourceBadge');
+  if (badge) { badge.textContent = 'Edited'; badge.className = 'source-badge edited'; }
+}
+
+function copyAsk(){
+  const text = state.askText || '';
+  try { navigator.clipboard.writeText(text).catch(()=>{}); } catch(e) {}
+  const ta = document.getElementById('askText');
+  if (ta) { ta.select(); try { document.execCommand('copy'); } catch(e){} }
+  state.copied = true;
+  renderScreen();
+  setTimeout(()=>{ state.copied = false; renderScreen(); }, 1600);
+}
+
+function confirmCollect(){
+  const job = currentJob();
+  const rail = state.selectedRail;
+  if (rail === 'collectNow') {
+    state.lastConfirm = COPY.confirm.collectNow(fmt(job.ticket));
+  } else if (rail === 'deposit') {
+    const dep = depositAmount(job);
+    state.lastConfirm = COPY.confirm.deposit(fmt(dep), fmt(job.ticket - dep));
+  } else {
+    state.lastConfirm = COPY.confirm.financing();
+  }
+  state.screen = 'confirmation';
+  render();
+}
+
+function dismissPrompt(){
+  const job = currentJob();
+  state.genToken++; // drop any still-loading generate() calls for this prompt
+  state.promptAction = 'dismissed';
+  state.selectedRail = null; state.askText = null; state.askSource = null; state.askEdited = false; state.toneIndex = 0; state.copied = false;
+  renderScreen();
+  beginManualCollectGeneration(job); // dismissing the nudge ≠ dismissing the ability to collect
+}
+
+function suppressCustomer(){
+  const job = currentJob();
+  job.suppressed = true;
+  state.genToken++;
+  state.promptAction = 'suppressed';
+  state.selectedRail = null; state.askText = null; state.askSource = null; state.askEdited = false; state.toneIndex = 0; state.copied = false;
+  renderScreen();
+  beginManualCollectGeneration(job);
+}
+
+function resetToCloseout(){
+  state.screen = 'closeout';
+  resetPromptState();
+  render();
+}
+
+function refreshDecisionScreenIfNeeded(){
+  if (state.screen !== 'decision' || state.promptAction !== null) return;
+  const job = currentJob();
+  const decision = decideCollectNow(job, {offline: state.offline, timeout: state.timeout});
+  if (decision.tier === 'soft' || decision.tier === 'clear') {
+    beginPromptGeneration(job, decision);
+  } else {
+    beginManualCollectGeneration(job);
+  }
+}
+
+function toggleOffline(){
+  state.offline = !state.offline;
+  resetPromptState();
+  render();
+  refreshDecisionScreenIfNeeded();
+}
+
+function toggleTimeout(){
+  state.timeout = !state.timeout;
+  resetPromptState();
+  render();
+  refreshDecisionScreenIfNeeded();
+}
+
+function toggleZip(){
+  state.affluentZip = !state.affluentZip;
+  render();
+}
+
+function setLlmKey(v){
+  state.llm.apiKey = v.trim();
+  updateLlmStatus();
+}
+
+function resetDemo(){
+  SCENARIOS.forEach(j => { j.suppressed = false; j.depositTaken = false; });
+  state.scenarioId = 'hero';
+  state.offline = false;
+  state.timeout = false;
+  state.affluentZip = true;
+  state.llm.apiKey = '';
+  state.screen = 'closeout';
+  resetPromptState();
+  state.lastConfirm = null;
+  render();
+}
+
+/* ---------------------------------------------------------------------
+   12. INIT
+   --------------------------------------------------------------------- */
+render();
+</script>
+</body>
+</html>
