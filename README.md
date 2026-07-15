@@ -4,7 +4,7 @@ Interactive prototype for "Collect Now," a concept for the Housecall Pro FinTech
 How to run it
 Option A — open the file: download index.html, then double-click it (or open it in Chrome, Edge, or Safari). It runs fully offline with no install, build step, or account.
 
-Option B — hosted version: https://natedav11.github.io/collectnow/
+Option B — hosted version: https://natedavenport.github.io/collectnow/
 What to try (≈2 minutes)
 Start on the hero job (new customer, large emergency ticket) — the prompt appears with a plain-language "why" and payment options. Tap Tap to Pay to see the collect-and-confirm flow.
 Use the scenario switcher to compare:
